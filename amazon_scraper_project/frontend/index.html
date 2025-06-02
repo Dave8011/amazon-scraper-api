@@ -1,0 +1,52 @@
+<!-- index.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Amazon Scraper UI</title>
+</head>
+<body>
+  <h2>Amazon Scraper Form</h2>
+  <form id="scrape-form">
+    <label>Company Name: <input type="text" name="company" required></label><br><br>
+    <label>Enter Pincodes (comma-separated): <input type="text" name="pincodes" required></label><br><br>
+    <label>Send Email? <input type="checkbox" name="sendMailFlag" id="sendMailCheckbox"></label><br><br>
+    <label>Recipient Email: <input type="email" name="recipient_email" id="emailField" style="display:none;"></label><br><br>
+    <label>Include Competitors? <input type="checkbox" name="getCompetitorFlag" checked></label><br><br>
+    <label>Include Product Title? <input type="checkbox" name="getProductTitleFlag" checked></label><br><br>
+    <button type="submit">Start Scraping</button>
+  </form>
+
+  <script>
+    const form = document.getElementById('scrape-form');
+    const checkbox = document.getElementById('sendMailCheckbox');
+    const emailField = document.getElementById('emailField');
+
+    checkbox.addEventListener('change', () => {
+      emailField.style.display = checkbox.checked ? 'inline' : 'none';
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const data = {
+        company: form.company.value,
+        pincodes: form.pincodes.value.split(',').map(p => p.trim()),
+        sendMailFlag: checkbox.checked,
+        recipient_email: form.recipient_email.value || null,
+        getCompetitorFlag: form.getCompetitorFlag.checked,
+        getProductTitleFlag: form.getProductTitleFlag.checked
+      };
+
+      const response = await fetch('/scrape/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+      alert(result.message || "Scraping started!");
+    });
+  </script>
+</body>
+</html>
