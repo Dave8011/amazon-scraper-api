@@ -1,0 +1,44 @@
+from fastapi import FastAPI, BackgroundTasks
+from pydantic import BaseModel, EmailStr
+from typing import List
+from app import main as scrape_main
+
+app = FastAPI()
+
+class ScrapeRequest(BaseModel):
+    company: str
+    pincodes: List[str]
+    sendMailFlag: bool = False
+    getCompetitorFlag: bool = True
+    getProductTitleFlag: bool = True
+
+@app.get("/")
+def root():
+    return {"message": "Amazon Scraper API is running"}
+
+@app.post("/scrape/")
+def scrape_amazon(request: ScrapeRequest, background_tasks: BackgroundTasks):
+    # Define the city map here or make it dynamic later
+    city_map = {
+        "400001": "Mumbai",
+        "110001": "Delhi",
+        "560001": "Bangalore",
+        "500001": "Hyderabad",
+        "201301": "Noida",
+        "600001": "Chennai",
+        "700002": "Kolkata",
+        "226001": "Lucknow"
+    }
+
+    # Run the scraper in the background
+    background_tasks.add_task(
+        scrape_main,
+        request.company,
+        request.pincodes,
+        city_map,
+        request.sendMailFlag,
+        request.getCompetitorFlag,
+        request.getProductTitleFlag
+    )
+
+    return {"message": "Scraping started in background"}
