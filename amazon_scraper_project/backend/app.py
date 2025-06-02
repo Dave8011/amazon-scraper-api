@@ -5,7 +5,6 @@ import pandas as pd
 from datetime import datetime
 import csv
 import smtplib
-import mimetypes
 from email.message import EmailMessage
 from dotenv import load_dotenv
 from bot import amazon_main
@@ -41,33 +40,69 @@ def send_email(output_filename, recipient_email, pincodes, company):
     except Exception as e:
         print(f"Error sending email: {e}")
 
-def main(company, pincodes, city_map, sendMailFlag, recipient_email, getCompetitorFlag, getProductTitleFlag):
+def main(
+    company,
+    pincodes,
+    city_map,
+    sendMailFlag,
+    recipient_email,
+    getCompetitorFlag,
+    getProductTitleFlag,
+    asins=None,
+    includePrice=True,
+    includeSellerCount=True
+):
     os.makedirs("./amazon_data", exist_ok=True)
-    csv_file_path = f'./{company}.csv'
 
-    if not os.path.exists(csv_file_path):
-        print(f"File not found: {csv_file_path}")
-        return
-
-    try:
-        df = pd.read_csv(csv_file_path)
-        asin_list = df.iloc[:, 0].tolist()
-    except Exception as e:
-        print(f"Error reading CSV: {e}")
-        return
+    # Load ASIN list
+    if asins and len(asins) > 0:
+        asin_list = asins
+    else:
+        # fallback: try to read CSV file named {company}.csv
+        csv_file_path = f'./{company}.csv'
+        if not os.path.exists(csv_file_path):
+            print(f"File not found: {csv_file_path}")
+            return
+        try:
+            df = pd.read_csv(csv_file_path)
+            asin_list = df.iloc[:, 0].tolist()
+        except Exception as e:
+            print(f"Error reading CSV: {e}")
+            return
 
     host_url = "https://www.amazon.in/dp/"
     timestamp_now = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
     output_filename = f"./amazon_data/{company}_{timestamp_now}.csv"
 
+    # Build CSV header dynamically
+    header = ['Asin','buy_box_flag','Timestamp','Pincode','City','Seller']
+    if includePrice:
+        header.append('Price')
+    header.append('coupon_text')
+    header.append('Free Delivery')
+    header.append('Fastest Delivery')
+    if includeSellerCount:
+        header.append('seller count')
+    header.append('Minimum Price')
+    if getProductTitleFlag:
+        header.append('product_title')
+
     with open(output_filename, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
-        if getProductTitleFlag:
-            writer.writerow(['Asin','buy_box_flag','Timestamp','Pincode','City','Seller','Price','coupon_text','Free Delivery','Fastest Delivery','seller count','Minimum Price','product_title'])
-        else:
-            writer.writerow(['Asin','buy_box_flag','Timestamp','Pincode','City','Seller','Price','coupon_text','Free Delivery','Fastest Delivery','seller count','Minimum Price'])
+        writer.writerow(header)
 
-    amazon_main(pincodes, asin_list, host_url, output_filename, city_map, getCompetitorFlag, getProductTitleFlag)
+    # Call main scraping function
+    amazon_main(
+        pincodes,
+        asin_list,
+        host_url,
+        output_filename,
+        city_map,
+        getCompetitorFlag,
+        getProductTitleFlag,
+        includePrice,
+        includeSellerCount
+    )
 
     print(f"All data written to {output_filename}")
 
