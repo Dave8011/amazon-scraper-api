@@ -1,7 +1,7 @@
 fastapi
 uvicorn
-python-dotenv
 pandas
+python-dotenv
 selenium
 webdriver-manager
 email-validator
