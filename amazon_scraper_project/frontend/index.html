@@ -1,79 +1,197 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Amazon Scraper UI</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f7f9fc;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: #fff;
+      padding: 30px 40px;
+      border-radius: 10px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 480px;
+    }
+
+    h2 {
+      margin-bottom: 25px;
+      color: #333;
+      text-align: center;
+    }
+
+    form label {
+      display: block;
+      margin-bottom: 12px;
+      font-weight: 600;
+      color: #555;
+    }
+
+    input[type="text"],
+    input[type="email"] {
+      width: 100%;
+      padding: 10px 12px;
+      margin-top: 6px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+      box-sizing: border-box;
+      transition: border-color 0.3s ease;
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus {
+      border-color: #0073e6;
+      outline: none;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      margin-right: 10px;
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .checkbox-group label {
+      font-weight: 500;
+      color: #444;
+      cursor: pointer;
+      margin-bottom: 0;
+    }
+
+    #emailField {
+      margin-top: 6px;
+      display: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px 0;
+      background-color: #0073e6;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin-top: 15px;
+    }
+
+    button:hover {
+      background-color: #005bb5;
+    }
+
+    /* Responsive */
+    @media (max-width: 520px) {
+      .container {
+        padding: 20px 25px;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h2>Amazon Scraper Form</h2>
-  <form id="scrape-form">
-    <label>Company Name (optional): <input type="text" name="company"></label><br><br>
+  <div class="container">
+    <h2>Amazon Scraper Form</h2>
+    <form id="scrape-form" autocomplete="off">
+      <label for="company">Company Name (optional):</label>
+      <input type="text" id="company" name="company" placeholder="Enter company name" />
 
-    <label>Enter Pincodes (comma-separated): <input type="text" name="pincodes"></label><br><br>
+      <label for="pincodes">Enter Pincodes (comma-separated): <span style="color: red;">*</span></label>
+      <input type="text" id="pincodes" name="pincodes" placeholder="e.g. 400001, 110001" required />
 
-    <label>Upload ASIN CSV: <input type="file" id="asinFile" accept=".csv"></label><br><br>
+      <div class="checkbox-group">
+        <input type="checkbox" id="sendMailCheckbox" name="sendMailFlag" />
+        <label for="sendMailCheckbox">Send Email?</label>
+      </div>
 
-    <label>Send Email? <input type="checkbox" name="sendMailFlag" id="sendMailCheckbox"></label><br><br>
-    <label>Recipient Email: <input type="email" name="recipient_email" id="emailField" style="display:none;"></label><br><br>
+      <label for="recipient_email" id="emailLabel" style="display:none;">Recipient Email:</label>
+      <input type="email" id="emailField" name="recipient_email" placeholder="Enter recipient email" />
 
-    <label>Include Competitors? <input type="checkbox" name="getCompetitorFlag" checked></label><br><br>
-    <label>Include Product Title? <input type="checkbox" name="getProductTitleFlag" checked></label><br><br>
+      <div class="checkbox-group">
+        <input type="checkbox" id="getCompetitorFlag" name="getCompetitorFlag" checked />
+        <label for="getCompetitorFlag">Include Competitors?</label>
+      </div>
 
-    <!-- Additional toggles -->
-    <label>Include Selling Price? <input type="checkbox" name="includePrice" checked></label><br><br>
-    <label>Include Sellers Count? <input type="checkbox" name="includeSellerCount" checked></label><br><br>
+      <div class="checkbox-group">
+        <input type="checkbox" id="getProductTitleFlag" name="getProductTitleFlag" checked />
+        <label for="getProductTitleFlag">Include Product Title?</label>
+      </div>
 
-    <button type="submit">Start Scraping</button>
-  </form>
+      <button type="submit">Start Scraping</button>
+    </form>
+  </div>
 
   <script>
     const form = document.getElementById('scrape-form');
     const checkbox = document.getElementById('sendMailCheckbox');
     const emailField = document.getElementById('emailField');
-    const asinFileInput = document.getElementById('asinFile');
+    const emailLabel = document.getElementById('emailLabel');
 
     checkbox.addEventListener('change', () => {
-      emailField.style.display = checkbox.checked ? 'inline' : 'none';
+      if (checkbox.checked) {
+        emailField.style.display = 'block';
+        emailLabel.style.display = 'block';
+        emailField.required = true;
+      } else {
+        emailField.style.display = 'none';
+        emailLabel.style.display = 'none';
+        emailField.required = false;
+        emailField.value = '';
+      }
     });
-
-    // Helper to parse CSV (simple version)
-    function parseCSV(text) {
-      // Assumes ASIN is in first column, one per row
-      return text.trim().split('\n').map(line => line.split(',')[0].trim());
-    }
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      let asinList = [];
-
-      if (asinFileInput.files.length > 0) {
-        const file = asinFileInput.files[0];
-        const text = await file.text();
-        asinList = parseCSV(text);
-      }
-
-      const pincodesList = form.pincodes.value ? form.pincodes.value.split(',').map(p => p.trim()) : [];
-
       const data = {
-        company: form.company.value || "unknown",
-        pincodes: pincodesList,
-        asins: asinList, // send this to backend
+        company: form.company.value.trim() || "unknown",
+        pincodes: form.pincodes.value.split(',').map(p => p.trim()).filter(p => p),
         sendMailFlag: checkbox.checked,
-        recipient_email: form.recipient_email.value || null,
+        recipient_email: emailField.value.trim() || null,
         getCompetitorFlag: form.getCompetitorFlag.checked,
-        getProductTitleFlag: form.getProductTitleFlag.checked,
-        includePrice: form.includePrice.checked,
-        includeSellerCount: form.includeSellerCount.checked
+        getProductTitleFlag: form.getProductTitleFlag.checked
       };
 
-      const response = await fetch('/scrape/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
+      if (data.pincodes.length === 0) {
+        alert("Please enter at least one valid pincode.");
+        return;
+      }
 
-      const result = await response.json();
-      alert(result.message || "Scraping started!");
+      if (data.sendMailFlag && !data.recipient_email) {
+        alert("Please enter recipient email when Send Email is checked.");
+        return;
+      }
+
+      try {
+        const response = await fetch('/scrape/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        alert(result.message || "Scraping started!");
+      } catch (error) {
+        alert("Failed to start scraping: " + error.message);
+      }
     });
   </script>
 </body>
