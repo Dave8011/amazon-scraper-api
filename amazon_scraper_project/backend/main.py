@@ -3,7 +3,10 @@
 from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel, EmailStr
 from typing import List, Optional
-from app import main as scrape_main
+import app
+
+scrape_main = app.main
+
 
 app = FastAPI()
 
