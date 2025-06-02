@@ -10,13 +10,18 @@ scrape_main = app.main
 
 app = FastAPI()
 
+from typing import List, Optional
+
 class ScrapeRequest(BaseModel):
-    company: str
-    pincodes: List[str]
+    company: Optional[str] = "unknown"
+    pincodes: Optional[List[str]] = []
+    asins: Optional[List[str]] = []
     sendMailFlag: bool = False
     recipient_email: Optional[EmailStr] = None
     getCompetitorFlag: bool = True
     getProductTitleFlag: bool = True
+    includePrice: bool = True
+    includeSellerCount: bool = True
 
 @app.get("/")
 def root():
