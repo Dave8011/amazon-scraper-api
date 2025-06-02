@@ -7,10 +7,7 @@ import app
 
 scrape_main = app.main
 
-
 app = FastAPI()
-
-from typing import List, Optional
 
 class ScrapeRequest(BaseModel):
     company: Optional[str] = "unknown"
@@ -48,7 +45,10 @@ def scrape_amazon(request: ScrapeRequest, background_tasks: BackgroundTasks):
         request.sendMailFlag,
         request.recipient_email,
         request.getCompetitorFlag,
-        request.getProductTitleFlag
+        request.getProductTitleFlag,
+        request.asins,
+        request.includePrice,
+        request.includeSellerCount
     )
 
     return {"message": "Scraping started in background"}
