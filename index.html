@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Amazon Scraper UI</title>
+</head>
+<body>
+  <h2>Amazon Scraper Interface</h2>
+  <form id="scrapeForm">
+    <label>CSV File:</label>
+    <input type="file" name="file" required /><br><br>
+
+    <label>Company Name:</label>
+    <input type="text" name="company" required /><br><br>
+
+    <label>Pincodes (comma separated):</label>
+    <input type="text" name="pincodes" required /><br><br>
+
+    <label><input type="checkbox" name="sendMailFlag" /> Send Email</label><br>
+    <label><input type="checkbox" name="getCompetitorFlag" checked /> Include Competitor</label><br>
+    <label><input type="checkbox" name="getProductTitleFlag" checked /> Include Product Title</label><br><br>
+
+    <button type="submit">Start Scraping</button>
+  </form>
+
+  <p id="response"></p>
+
+  <script>
+    document.getElementById("scrapeForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const formData = new FormData(form);
+
+      formData.set("sendMailFlag", form.sendMailFlag.checked);
+      formData.set("getCompetitorFlag", form.getCompetitorFlag.checked);
+      formData.set("getProductTitleFlag", form.getProductTitleFlag.checked);
+
+      const res = await fetch("https://amazon-scraper-api-2jsh.onrender.com/scrape/", {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await res.json();
+      document.getElementById("response").innerHTML = `
+        <strong>${data.message}</strong><br>
+        ${data.download_url ? `<a href="${data.download_url}" target="_blank">Download Link (after done)</a>` : ""}
+      `;
+    });
+  </script>
+</body>
+</html>
