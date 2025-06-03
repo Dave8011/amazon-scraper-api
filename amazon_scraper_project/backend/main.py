@@ -11,6 +11,17 @@ scrape_main = app.main
 
 app = FastAPI()
 
+class ScrapeRequest(BaseModel):
+    company: Optional[str] = "unknown"
+    pincodes: Optional[List[str]] = []
+    asins: Optional[List[str]] = []
+    sendMailFlag: bool = False
+    recipient_email: Optional[EmailStr] = None
+    getCompetitorFlag: bool = True
+    getProductTitleFlag: bool = True
+    includePrice: bool = True
+    includeSellerCount: bool = True
+    
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
