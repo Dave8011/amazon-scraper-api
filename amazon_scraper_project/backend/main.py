@@ -3,11 +3,21 @@
 from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel, EmailStr
 from typing import List, Optional
+from fastapi.middleware.cors import CORSMiddleware
 import app
 
 scrape_main = app.main
 
+
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["Authorization", "Content-Type"],
+)
 
 class ScrapeRequest(BaseModel):
     company: Optional[str] = "unknown"
